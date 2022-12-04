@@ -2,10 +2,12 @@ require('dotenv').config();
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const mongoose = require('mongoose');
-// const cors = require('cors');
+const cors = require('cors');
 const { errors } = require('celebrate');
+const corsOptionsDelegate = require('./middleware/cors');
 const { requestLogger, errorLogger } = require('./middleware/logger');
 const cenralErrors = require('./middleware/centralError');
+const routes = require('./routes/index');
 
 // подключи бд по url
 const { PORT = 3000, MONGO_URL = 'mongodb://localhost:27017/bitfilmsdb' } = process.env;
@@ -21,7 +23,7 @@ mongoose.connect(MONGO_URL, { autoIndex: true });
 app.use(requestLogger);
 
 // разрешения для корсы
-// app.use(cors(файл с разрешениями));
+app.use(cors(corsOptionsDelegate));
 
 app.get('/crash-test', () => {
   setTimeout(() => {
@@ -29,7 +31,8 @@ app.get('/crash-test', () => {
   }, 0);
 });
 
-// здесь будут роуты
+// роуты
+app.use(routes);
 
 // обработчики ошибок
 app.use(errorLogger);

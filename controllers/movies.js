@@ -1,10 +1,8 @@
 const mongoose = require('mongoose');
 
 const BadRequestError = require('../errors/BadRequestError');
-// const ErrorNotFound = require('../errors/ErrorNotFound');
-// const CardDeletionError = require('../errors/CardDeletionError');
-
-// const { celebrate, Joi } = require('celebrate');
+const ErrorNotFound = require('../errors/ErrorNotFound');
+const CardDeletionError = require('../errors/CardDeletionError');
 
 const Movies = require('../modules/movies');
 
@@ -16,14 +14,23 @@ const getMovies = (req, res, next) => {
 
 const createMovie = (req, res, next) => {
   const {
-    // eslint-disable-next-line max-len
-    country, director, duration, year, description, image, trailer, nameRU, nameEN, thumbnail, movieId,
+    country, director, duration, year, description, image,
+    trailerLink, nameRU, nameEN, thumbnail,
   } = req.body;
   Movies.create({
-    // eslint-disable-next-line object-property-newline, max-len
-    country, director, duration, year, description, image, trailer, nameRU, nameEN, thumbnail, movieId,
-  })
-    .then((movie) => { res.send(movie); })
+    country,
+    director,
+    duration,
+    year,
+    description,
+    image,
+    trailerLink,
+    nameRU,
+    nameEN,
+    thumbnail,
+    owner: req.user._id,
+    movieId: req.user._id,
+  }).then((movie) => { res.send(movie); })
     .catch((err) => {
       if (err instanceof mongoose.Error.ValidationError) {
         return next(new BadRequestError('Переданы некорректные данные при создании карточки'));
@@ -33,20 +40,18 @@ const createMovie = (req, res, next) => {
 };
 
 const deleteMovies = (req, res, next) => {
-  Movies.findById(req.params.moviesId)
-    .then(() => {})
-    .catch(() => {});
+  Movies.findById(req.params._id)
+    .then((movie) => {
+      if (!movie) { throw (new ErrorNotFound('Попытка удалить несуществующую карточку')); }
+      if (!movie.owner.equals(req.user._id)) { throw (new CardDeletionError('Попытка удалить чужую карточку')); }
+      return Movies.findByIdAndRemove(req.params._id)
+        .then((removeMovie) => { res.send(removeMovie); });
+    })
+    .catch((err) => {
+      if (err instanceof mongoose.Error.ValidationError) { return next(new BadRequestError('Переданы некорректные данные при удалении карточки')); }
+      if (err.name === 'CastError') { return next(new BadRequestError('Переданы некорректные данные при удалении карточки')); }
+      return next(err);
+    });
 };
 
 module.exports = { getMovies, createMovie, deleteMovies };
-
-// # возвращает все сохранённые текущим  пользователем фильмы
-// GET /movies
-
-// # создаёт фильм с переданными в теле
-// eslint-disable-next-line max-len
-// # country, director, duration, year, description, image, trailer, nameRU, nameEN и thumbnail, movieId
-// POST /movies
-
-// # удаляет сохранённый фильм по id
-// DELETE /movies/_id

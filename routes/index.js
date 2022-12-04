@@ -4,6 +4,7 @@ const validator = require('validator');
 const auth = require('../middleware/auth');
 const { login, createUsers } = require('../controllers/users');
 const usersRouter = require('./users');
+const moviesRouter = require('./movies');
 
 const ErrorNotFound = require('../errors/ErrorNotFound');
 
@@ -20,13 +21,6 @@ router.post('/signin', celebrate({
 router.post('/signup', (celebrate({
   body: Joi.object().keys({
     name: Joi.string().min(2).max(30),
-    about: Joi.string().min(2).max(30),
-    avatar: Joi.string().custom((value, helpers) => {
-      if (/^https?:\/\/(www\.)?[a-zA-Z\d-]+\.[\w\d\-.~:/?#[\]@!$&'()*+,;=]{2,}#?$/.test(value)) {
-        return value;
-      }
-      return helpers.message('Некорректная ссылка');
-    }),
     email: Joi.string().required().custom((value, helpers) => {
       if (validator.isEmail(value)) {
         return value;
@@ -46,6 +40,8 @@ router.use(auth);
 
 // получил доступ к роутам если прошел проверку токена
 router.use('/users', usersRouter);
+
+router.use('/movies', moviesRouter);
 
 router.use('*', (req, res, next) => { next(new ErrorNotFound('Запрашиваемый ресурс не найден')); });
 
