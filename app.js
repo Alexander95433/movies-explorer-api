@@ -1,4 +1,5 @@
 require('dotenv').config();
+const helmet = require('helmet');
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const mongoose = require('mongoose');
@@ -9,10 +10,14 @@ const { requestLogger, errorLogger } = require('./middleware/logger');
 const cenralErrors = require('./middleware/centralError');
 const routes = require('./routes/index');
 
+const { addressMongodb } = require('./utils/constants');
+
 // подключи бд по url
-const { PORT = 3000, MONGO_URL = 'mongodb://localhost:27017/bitfilmsdb' } = process.env;
+const { PORT = 3000, MONGO_URL = addressMongodb } = process.env;
 
 const app = express();
+
+app.use(helmet());
 
 app.use(cookieParser());
 
@@ -24,12 +29,6 @@ app.use(requestLogger);
 
 // разрешения для корсы
 app.use(cors(corsOptionsDelegate));
-
-app.get('/crash-test', () => {
-  setTimeout(() => {
-    throw new Error('Сервер успешно упал');
-  }, 0);
-});
 
 // роуты
 app.use(routes);
@@ -43,6 +42,5 @@ app.use(cenralErrors);
 
 // сервер
 app.listen(PORT, () => {
-  // eslint-disable-next-line no-console
   console.log(`Порт ${PORT}`);
 });

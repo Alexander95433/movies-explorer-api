@@ -2,12 +2,12 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-const { NODE_ENV, JWT_SECRET } = process.env;
+const { secretKey } = require('../utils/constants');
 
 const BadRequestError = require('../errors/BadRequestError');
 const ErrorNotFound = require('../errors/ErrorNotFound');
 const BadAuthError = require('../errors/BadAuthError');
-const EmailErrorAlreadyExists = require('../errors/EmailErrorAlreadyExists');
+const AccessError = require('../errors/AccessError');
 
 const User = require('../modules/users');
 
@@ -15,7 +15,7 @@ const login = ((req, res, next) => {
   const { email, password } = req.body;
   User.findUserByCredentials(email, password)
     .then((user) => {
-      const token = jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret', { expiresIn: '7d' });
+      const token = jwt.sign({ _id: user._id }, secretKey, { expiresIn: '7d' });
       res.cookie('jwt', token, {
         // maxAge: 3600000 * 24 * 7, httpOnly: true, sameSite: 'None', secure: true,
         maxAge: 3600000 * 24 * 7, httpOnly: true, sameSite: 'None',
@@ -42,7 +42,7 @@ const createUsers = (req, res, next) => {
     })
     .catch((err) => {
       if (err instanceof mongoose.Error.ValidationError) { return next(new BadRequestError('Переданы невалидные данные')); }
-      if (err.code === 11000) { return next(new EmailErrorAlreadyExists('Аккаунт с такой почтой уже существует')); }
+      if (err.code === 11000) { return next(new AccessError('Аккаунт с такой почтой уже существует')); }
       return next(err);
     });
 };
@@ -56,15 +56,18 @@ const getUser = (req, res, next) => {
     .catch(next);
 };
 
-/* eslint-disable brace-style */
 const updateUserInformation = (req, res, next) => {
   const { email, name } = req.body;
   User.findByIdAndUpdate(req.user._id, { email, name })
     .orFail(() => new ErrorNotFound('Пользователь с указанным id не существует'))
     .then((user) => { res.send({ data: user }); })
-    .catch((err) => { if (err instanceof mongoose.Error.ValidationError) { return next(new BadRequestError('Переданы невалидные данные')); }
-      return next(err); });
+    .catch((err) => {
+      if (err instanceof mongoose.Error.ValidationError) { return next(new BadRequestError('Переданы невалидные данные')); }
+      if (err.codeName === 'DuplicateKey') { return next(new AccessError('Изменяемые данные пользователя совпадают с уже существующими')); }
+      return res.send(err);
+    });
 };
 
-// eslint-disable-next-line object-curly-newline
-module.exports = { login, getUser, updateUserInformation, createUsers };
+module.exports = {
+  login, getUser, updateUserInformation, createUsers,
+};
