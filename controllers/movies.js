@@ -13,23 +13,9 @@ const getMovies = (req, res, next) => {
 };
 
 const createMovie = (req, res, next) => {
-  const {
-    country, director, duration, year, description, image,
-    trailerLink, nameRU, nameEN, thumbnail,
-  } = req.body;
+  const owner = req.user._id;
   Movies.create({
-    country,
-    director,
-    duration,
-    year,
-    description,
-    image,
-    trailerLink,
-    nameRU,
-    nameEN,
-    thumbnail,
-    owner: req.user._id,
-    movieId: req.user._id,
+    owner, ...req.body,
   }).then((movie) => { res.send(movie); })
     .catch((err) => {
       if (err instanceof mongoose.Error.ValidationError) {
@@ -40,11 +26,11 @@ const createMovie = (req, res, next) => {
 };
 
 const deleteMovies = (req, res, next) => {
-  Movies.findById(req.params._id)
+  Movies.findById(req.params.movieId)
     .then((movie) => {
       if (!movie) { throw (new ErrorNotFound('Попытка удалить несуществующую карточку')); }
       if (!movie.owner.equals(req.user._id)) { throw (new CardDeletionError('Попытка удалить чужую карточку')); }
-      return Movies.findByIdAndRemove(req.params._id)
+      return Movies.findByIdAndRemove(req.params.movieId)
         .then((removeMovie) => { res.send(removeMovie); });
     })
     .catch((err) => {

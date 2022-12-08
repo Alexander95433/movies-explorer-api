@@ -5,6 +5,7 @@ const cookieParser = require('cookie-parser');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const { errors } = require('celebrate');
+const rateLimiter = require('./middleware/rateLimiter');
 const corsOptionsDelegate = require('./middleware/cors');
 const { requestLogger, errorLogger } = require('./middleware/logger');
 const cenralErrors = require('./middleware/centralError');
@@ -18,6 +19,8 @@ const { PORT = 3000, MONGO_URL = addressMongodb } = process.env;
 const app = express();
 
 app.use(helmet());
+
+app.use(rateLimiter);
 
 app.use(cookieParser());
 
