@@ -1,5 +1,6 @@
 const allowlist = [
   'http://localhost:3000',
+  'http://localhost:3001',
   'https://jsonplaceholder.typicode.com/posts',
 ];
 
