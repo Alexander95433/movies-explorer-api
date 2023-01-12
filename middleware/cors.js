@@ -14,3 +14,18 @@ const corsOptionsDelegate = (req, callback) => {
 };
 
 module.exports = corsOptionsDelegate;
+
+// const corsOptionsDelegate = {
+//   origin: [
+//     'https://thedoft.mesto.students.nomoredomains.rocks',
+//     'http://thedoft.mesto.students.nomoredomains.rocks',
+//     'http://localhost:3000',
+//   ],
+//   methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
+//   preflightContinue: false,
+//   optionsSuccessStatus: 204,
+//   allowedHeaders: ['Content-Type', 'Origin', 'Referer', 'Accept', 'Authorization'],
+//   credentials: true,
+// };
+
+// module.exports = corsOptionsDelegate;
