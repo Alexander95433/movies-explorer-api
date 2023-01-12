@@ -14,7 +14,7 @@ const routes = require('./routes/index');
 const { addressMongodb } = require('./utils/constants');
 
 // подключи бд по url
-const { PORT = 4000, MONGO_URL = addressMongodb } = process.env;
+const { PORT = 3000, MONGO_URL = addressMongodb } = process.env;
 
 const app = express();
 
