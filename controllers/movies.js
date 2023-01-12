@@ -26,20 +26,19 @@ const createMovie = (req, res, next) => {
 };
 
 const deleteMovies = (req, res, next) => {
-  // Movies.findById(req.params.movieId)
-  //   .then((movie) => {
-  //     if (!movie) { throw (new ErrorNotFound('Попытка удалить несуществующую карточку')); }
-  //     if (!movie.owner.equals(req.user._id)) { throw (new CardDeletionError('Попытка удалить чужую карточку')); }
-  //     return Movies.findByIdAndRemove(req.params.movieId)
-  //       .then((removeMovie) => { res.send(removeMovie); });
-  //   })
-  //   .catch((err) => {
-  //     if (err instanceof mongoose.Error.ValidationError) { return next(new BadRequestError('Переданы некорректные данные при удалении карточки')); }
-  //     if (err.name === 'CastError') { return next(new BadRequestError('Переданы некорректные данные при удалении карточки')); }
-  //     return next(err);
-  //   });
-  Movies.findByIdAndRemove(req.params.movieId)
-    .then((removeMovie) => { res.send(removeMovie); });
+  Movies.findById(req.params.movieId)
+    .then((movie) => {
+      if (!movie) { throw (new ErrorNotFound('Попытка удалить несуществующую карточку')); }
+      if (!movie.owner.equals(req.user._id)) { throw (new CardDeletionError('Попытка удалить чужую карточку')); }
+      return Movies.findByIdAndRemove(req.params.movieId)
+        .then((removeMovie) => { res.send(removeMovie); });
+    })
+    .catch((err) => {
+      if (err instanceof mongoose.Error.ValidationError) { return next(new BadRequestError('Переданы некорректные данные при удалении карточки')); }
+      if (err.name === 'CastError') { return next(new BadRequestError('Переданы некорректные данные при удалении карточки')); }
+      return next(err);
+    });
+
 };
 
 module.exports = { getMovies, createMovie, deleteMovies };
