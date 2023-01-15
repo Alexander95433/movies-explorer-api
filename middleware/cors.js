@@ -2,6 +2,7 @@ const allowlist = [
   'http://localhost:3000',
   'http://localhost:3001',
   'https://jsonplaceholder.typicode.com/posts',
+  'https://movies-explorer-alkom.nomoredomains.rocks',
 ];
 
 const corsOptionsDelegate = (req, callback) => {
